@@ -7,24 +7,6 @@ let selectedCategory = 1000;
 let sorted = false;
 
 
-function padTo2Digits(num) {
-    return num.toString().padStart(2, '0');
-  }
-  
-  function convertToHM(milliseconds) {
-    let seconds = Math.floor(milliseconds / 1000);
-    let minutes = Math.floor(seconds / 60);
-    let hours = Math.floor(minutes / 60);
-  
-    seconds = seconds % 60;
-    minutes = seconds >= 30 ? minutes + 1 : minutes;
-    minutes = minutes % 60;
-    hours = hours % 24;
-  
-    return `${padTo2Digits(hours)}:${padTo2Digits(minutes)}`;
-  }
-
-
 sortBtn.addEventListener('click' , ()=>{
     sorted?sorted=false:sorted=true;
     fetchDataByCategories(selectedCategory,sorted);
@@ -82,15 +64,24 @@ const fetchDataByCategories = (categoryID , sortByView) =>{
             if(video.authors[0].verified){
                 verifiedTik = `<img src="images/tik.png" alt="verified badge" class="w-6">`;
             }
-            let postedTime = convertToHM(video.others.posted_date);
 
+            let milliseconds = video.others.posted_date;
+            let hours = Math.floor(Math.floor (Math.floor(milliseconds / 1000)/60 )/60);
+            let minutes = Math.floor (Math.floor(milliseconds / 1000)/60 );
+            let postedTime = '';
+            if(hours!=0 || minutes!=0){
+                 postedTime = `${hours} Hours ${minutes} Minutes Ago`;
+            }
+                
+            
+            
 
             const newCard = document.createElement('div');
             newCard.innerHTML = `
             <div class="card w-full bg-base-100 shadow-xl">
             <figure class="overflow-hidden h-72">
                     <img src=" ${video.thumbnail} " alt="" class="w-full h-full">
-                    <h6 class="absolute bottom-[40%] right-12 text-white px-1 bg-black rounded-lg">${postedTime} Hours Ago</h6>
+                    <h6 class="absolute bottom-[40%] right-12 text-white px-1 bg-black rounded-lg">${postedTime} </h6>
             </figure>
             <div class="card-body">
                 <div class="flex space-x-4 justify-start items-start">
