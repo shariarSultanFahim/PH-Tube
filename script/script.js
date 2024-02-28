@@ -66,11 +66,16 @@ const fetchDataByCategories = (categoryID , sortByView) =>{
             }
 
             let milliseconds = video.others.posted_date;
-            let hours = Math.floor(Math.floor (Math.floor(milliseconds / 1000)/60 )/60);
             let minutes = Math.floor (Math.floor(milliseconds / 1000)/60 );
+            let hours = Math.floor( minutes /60);
+            let days = Math.floor(hours/24);
+            hours%=24;
+            minutes%=60;
+           
+
             let postedTime = '';
-            if(hours!=0 || minutes!=0){
-                 postedTime = `${hours} Hours ${minutes} Minutes Ago`;
+            if(days!=0 || hours!=0 || minutes!=0){
+                 postedTime = `${days} Days ${hours} Hours ${minutes} Minutes Ago`;
             }
                 
             
