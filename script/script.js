@@ -1,8 +1,35 @@
 const btnContainer = document.getElementById('btn-container');
 const cardContainer = document.getElementById('vid-container');
 const error = document.getElementById('error');
+const sortBtn = document.getElementById('sort-btn');
 
 let selectedCategory = 1000;
+let sorted = false;
+
+
+function padTo2Digits(num) {
+    return num.toString().padStart(2, '0');
+  }
+  
+  function convertToHM(milliseconds) {
+    let seconds = Math.floor(milliseconds / 1000);
+    let minutes = Math.floor(seconds / 60);
+    let hours = Math.floor(minutes / 60);
+  
+    seconds = seconds % 60;
+    minutes = seconds >= 30 ? minutes + 1 : minutes;
+    minutes = minutes % 60;
+    hours = hours % 24;
+  
+    return `${padTo2Digits(hours)}:${padTo2Digits(minutes)}`;
+  }
+
+
+sortBtn.addEventListener('click' , ()=>{
+    sorted?sorted=false:sorted=true;
+    fetchDataByCategories(selectedCategory,sorted);
+    sorted?sortBtn.classList.add('btn-error'):sortBtn.classList.remove('btn-error');
+})
 
 const fetchCategories = () =>{
     const url = 'https://openapi.programming-hero.com/api/videos/categories'
@@ -12,37 +39,58 @@ const fetchCategories = () =>{
         data.data.forEach((element) => {
             const newBtn = document.createElement('button');
             newBtn.innerText = element.category;
-            newBtn.classList.add('btn','btn-error');
-            newBtn.addEventListener('click', ()=> fetchDataByCategories(element.category_id));
+            newBtn.classList.add('btn', 'allBtns');
+            newBtn.addEventListener('click', ()=> {
+                fetchDataByCategories(element.category_id , sorted)
+                const allBtn = document.querySelectorAll('.allBtns');
+                for(const btn of allBtn ){
+                    btn.classList.remove('btn-error');
+                }
+                newBtn.classList.add('btn-error');
+            });
             btnContainer.appendChild(newBtn);
         })
     } )
 }
 
-const fetchDataByCategories = (categoryID) =>{
+const fetchDataByCategories = (categoryID , sortByView) =>{
     selectedCategory = categoryID;
     const url = `https://openapi.programming-hero.com/api/videos/category/${categoryID}`
     fetch(url)
     .then( res => res.json())
     .then( data =>{
+        if(sortByView){
+            data.data.sort((a,b) =>{
+                const totalViewsStrFirst = a.others?.views;
+                const totalViewsStrSecond = b.others?.views;
+                const totalViewFirstNumber = parseFloat(totalViewsStrFirst.replace("K",'') || 0);
+                const totalViewSecondNumber = parseFloat(totalViewsStrSecond.replace("K",'') || 0);
+                return totalViewSecondNumber-totalViewFirstNumber;
+            })
+        }
+
         if(data.data.length ===0){
             error.classList.remove('hidden');
         }
         else{
             error.classList.add('hidden');
         }
+
         cardContainer.innerHTML = '';
         data.data.forEach(video => {
             let verifiedTik = '';
             if(video.authors[0].verified){
                 verifiedTik = `<img src="images/tik.png" alt="verified badge" class="w-6">`;
             }
+            let postedTime = convertToHM(video.others.posted_date);
+
+
             const newCard = document.createElement('div');
             newCard.innerHTML = `
             <div class="card w-full bg-base-100 shadow-xl">
             <figure class="overflow-hidden h-72">
                     <img src=" ${video.thumbnail} " alt="" class="w-full h-full">
-                    <h6 class="absolute bottom-[40%] right-12">0 hr</h6>
+                    <h6 class="absolute bottom-[40%] right-12 text-white px-1 bg-black rounded-lg">${postedTime} Hours Ago</h6>
             </figure>
             <div class="card-body">
                 <div class="flex space-x-4 justify-start items-start">
@@ -68,4 +116,4 @@ const fetchDataByCategories = (categoryID) =>{
 
 
 fetchCategories();
-fetchDataByCategories(selectedCategory);
+fetchDataByCategories(selectedCategory, sorted);
